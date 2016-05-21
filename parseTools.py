@@ -1,11 +1,13 @@
 import datetime
 import re
+from sys import version_info
 import matplotlib as mpl
 
 import matplotlib.rcsetup as rcsetup
 
 mpl.rcParams['backend'] = "Qt4Agg"
 import matplotlib.pyplot as plt
+
 
 class parseLine(object):
 
@@ -35,6 +37,14 @@ class damage(object):
 class encounter(object):
 	pass
 
+def takeInput(string):
+	if version_info[0] < 3:
+		output = raw_input(string)
+	else:
+		output = input(string)
+		
+	return output
+
 def clean(string):
 	try:
 		if string[0] == '@':
@@ -42,7 +52,7 @@ def clean(string):
 		if string[-1] == ')':
 			string = string[:-1]
 		if string[-1] == '\n':
-			string = string[:-2]
+			string = string[:-3]
 			# changes between 2 & 3 it seems. depending on ')\r\n' and ')\n'
 		if string[-1] == '>':
 			string = string[:-1]
@@ -53,13 +63,14 @@ def clean(string):
 def readLog(fileName):
 	combatLogs = []
 	regEx = '|'.join(map(re.escape, ['] [', '] (', ') <']))
-	with open(fileName, 'r', encoding='utf-8', errors='ignore') as parseLog:
+	with open(fileName, 'r') as parseLog:#, encoding='utf-8', errors='ignore') as parseLog:
 		print('Parsing...')
 		inCombat = False
 		waiting = -1
 		print('Skipping...')
 		for line in parseLog:
 			lineList = re.split(regEx, line)
+			
 			# Check if in combat
 		# Action ----------------------------------------------------------
 			actionList = lineList[4].split(': ')
@@ -87,7 +98,7 @@ def readLog(fileName):
 				timeStr = lineList[0][1:]
 				timeObj = datetime.datetime.strptime(timeStr, '%H:%M:%S.%f')
 		# -----------------------------------------------------------------
-
+			
 		# Source / Target ------------------------------------------------
 				try:
 					sourceVec = lineList[1].split(':')
@@ -108,7 +119,7 @@ def readLog(fileName):
 						target = gameObject(clean(lineList[2]))
 
 		# -----------------------------------------------------------------
-
+				
 		# Ability ---------------------------------------------------------
 				if lineList[3] == '': # gameObject class
 					ability = gameObject('none')
@@ -116,13 +127,13 @@ def readLog(fileName):
 					temp = lineList[3].split(' {')
 					ability = gameObject(temp[0], temp[1])
 		# -----------------------------------------------------------------
-
+				
 		# Damage / Threat -------------------------------------------------
 				if lineList[5] == ')\r\n' or lineList[5] == '' or lineList[5] == ')\n':
 					actionDetails = damage()
 				else:
 					tempDetails = clean(lineList[5])
-
+			
 					try:
 						tempDetailsList = tempDetails.split(' ')
 						mag = tempDetailsList[0]
@@ -139,12 +150,13 @@ def readLog(fileName):
 							crit = True
 							mag = mag[:-1]
 						actionDetails = damage(int(mag), crit = crit)
+				
 				try:
 					threat = int(clean(lineList[6]))
 				except IndexError:
 					threat = 'none'
 		# -----------------------------------------------------------------
-
+		
 		# Append to file
 				combatLine = parseLine(timeObj, source, target, ability, actionType, action, actionDetails,threat)
 
@@ -188,7 +200,7 @@ def printLogs(combatLogs):
 		waiting -= 1
 		if waiting == 0:
 			print('\n')
-			continuePrompt = input('Would you like to print next combat log? (y/n): ')
+			continuePrompt = takeInput('Would you like to print next combat log? (y/n): ')
 			if continuePrompt == 'y':
 				continue
 			else:
@@ -248,20 +260,21 @@ def dpsOutput(combatLogs, playerName):
 			plt.plot(timeList,damageList,'r-') #Damage plot
 			plt.title('Damage')
 
-			plt.show(block = False)
+			#plt.show(block = False)
+			plt.show()
 			print('Number of Hits: {:,}'.format(hits))
 			print('Crit Percentage: {:.2f}%'.format((100.*crits)/(hits)))
 			print('Total Damage Done: {:,}'.format(cumDamage))
 
 			print('\n')
-			damageBreakdown = input('Would you like a damage breakdown? (y/n): ')
+			damageBreakdown = takeInput('Would you like a damage breakdown? (y/n): ')
 			if damageBreakdown == 'y':
 				printDamage(targetIDs)
 			else:
 				pass
 
 			print('\n')
-			continuePrompt = input('Would you like to print next combat log? (y/n): ')
+			continuePrompt = takeInput('Would you like to print next combat log? (y/n): ')
 			plt.close()
 			if continuePrompt == 'y':
 				continue
