@@ -1,10 +1,9 @@
 import datetime
+import time
 import re
 from sys import version_info
 import matplotlib as mpl
-
 import matplotlib.rcsetup as rcsetup
-
 mpl.rcParams['backend'] = "Qt4Agg"
 import matplotlib.pyplot as plt
 
@@ -35,8 +34,28 @@ class damage(object):
 		self.crit= crit
 
 class encounter(object):
-	pass
-
+	
+	def __init__(self, startTime, number):
+		self.startT = startTime
+		self.ID = number
+		self.DPS = 0
+		self.HPS = 0
+		self.TPS = 0
+		self.threat = []
+		self.damage = []
+		self.targets = {}
+		self.duration = 0
+		
+		
+	def close(self, endTime):
+		self.endT = endTime
+		self.duration = endTime - self.startT
+		
+	def __str__(self):
+		strRepr = "Encounter #{}, StartTime: {}, Current Duration: {}, Targets: {}".format(self.ID, self.startT, self.duration, self.targets)
+		return strRepr
+	
+#======================================================================
 def takeInput(string):
 	if version_info[0] < 3:
 		output = raw_input(string)
@@ -59,6 +78,15 @@ def clean(string):
 		return string.split(' {')[0]
 	except IndexError:
 		return
+
+def follow(thefile):
+	thefile.seek(0,2)
+	while True:
+		line = thefile.readline()
+		if not line:
+			time.sleep(0.1)
+			continue
+		yield line		
 
 def readLog(fileName):
 	combatLogs = []
@@ -315,6 +343,6 @@ def printDamage(targetIDs):
 		for names,numbers in sorted(targetIDs[ID][1].items(), key = lambda pair: pair[1][0], reverse = True):
 			print('\t {}: {}'.format(names, numbers[0]))
 
-combatLog = readLog('combatTest.txt')
+#combatLog = readLog('combatTest.txt')
 #printLogs(combatLog)
-dpsOutput(combatLog, 'emixan')
+#dpsOutput(combatLog, 'emixan')
