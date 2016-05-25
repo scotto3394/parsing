@@ -105,7 +105,9 @@ class encounter(object):
 				else:
 				# You were healed
 					pass
-		
+					
+	def plotData(self):
+		pass
 	
 #======================================================================
 def takeInput(string):
@@ -149,7 +151,6 @@ def parsing(fileName):
 	inCombat = False
 	waiting = -1
 	toonName = re.split(regEx, file.readline())[1][1:]
-	print toonName
 	print('Skipping...')
 	encounterNumber = 0
 	
@@ -179,7 +180,6 @@ def parsing(fileName):
 				waiting = -1
 
 		if inCombat:
-
 	# Pull out and clean each entry in the list
 
 
