@@ -1,6 +1,4 @@
-import datetime
-import time
-import re
+import re, os, time, datetime
 from sys import version_info
 import matplotlib as mpl
 import matplotlib.rcsetup as rcsetup
@@ -34,7 +32,7 @@ class damage(object):
 		self.crit= crit
 
 class encounter(object):
-	
+
 	def __init__(self, startTime, number, toonName):
 		self.startT = startTime
 		self.ID = number
@@ -52,36 +50,42 @@ class encounter(object):
 		self.duration = 0
 		self.hits = 0
 		self.crits = 0
-		
-		
+
 	def close(self, endTime):
 		self.endT = endTime
-		self.duration = endTime - self.startT
-		
+		deltaDiff = endTime - self.startT
+		delta = deltaDiff.seconds + deltaDiff.microseconds/1000000.
+		self.duration = deltaDiff
+
+		self.DPS = sum(self.damage)/(delta * 1.)
+		self.TPS = sum(self.threat)/(delta * 1.)
+		self.HPS = sum(self.healing)/(delta * 1.)
+		self.DTPS = sum(self.taken)/(delta * 1.)
+
 	def __str__(self):
 		return "Encounter #{}".format(self.ID)
-		
+
 	def info(self):
 		strRepr = "Encounter #{}, StartTime: {}, Current Duration: {}, Targets: {}".format(self.ID, self.startT.time(), self.duration, self.targets)
 		return strRepr
-		
+
 	def printRotation(self):
 		for entries in self.rotation:
-			print "{}:\t {}".format(str(entries[0]).ljust(7), entries[1])
-		
+			print("{}:\t {}".format(str(entries[0]).ljust(7), entries[1]))
+
 	def update(self, time, source, target, ability, actionType, action, actionDetails, threat):
 		deltaDiff = time - self.startT
 		delta = deltaDiff.seconds + deltaDiff.microseconds/1000000.
 		self.duration = deltaDiff
-		
+
 		if ability.name != 'none' and source.name == self.player:
 			self.rotation.append((delta, ability.name))
-		
+
 		# If there is threat, something interesting happened.
 		if threat != 'none':
 			self.threat.append(threat)
 			self.TPS = sum(self.threat)/(delta * 1.)
-			
+
 			if source.name == self.player:
 			# Either you did something
 				if target.ID != 'none':
@@ -94,7 +98,7 @@ class encounter(object):
 					if type(actionDetails.magnitude) == type(1):
 						self.healing.append(actionDetails.magnitude)
 						self.HPS = sum(self.healing)/(delta * 1.)
-			
+
 			else:
 			# Or something was done to you
 				if source.ID != 'none':
@@ -105,17 +109,17 @@ class encounter(object):
 				else:
 				# You were healed
 					pass
-					
+
 	def plotData(self):
 		pass
-	
+
 #======================================================================
 def takeInput(string):
 	if version_info[0] < 3:
 		output = raw_input(string)
 	else:
 		output = input(string)
-		
+
 	return output
 
 def clean(string):
@@ -125,7 +129,7 @@ def clean(string):
 		if string[-1] == ')':
 			string = string[:-1]
 		if string[-1] == '\n':
-			string = string[:-3]
+			string = string[:-2]
 			# changes between 2 & 3 it seems. depending on ')\r\n' and ')\n'
 		if string[-1] == '>':
 			string = string[:-1]
@@ -138,25 +142,28 @@ def follow(thefile):
 	while True:
 		line = thefile.readline()
 		if not line:
-		#	time.sleep(0.1)
-		#	continue
-			raise StopIteration 
-		yield line		
+			time.sleep(0.1)
+			continue
+			#raise StopIteration
+		yield line
 
-def parsing(fileName):
+def parsing():
 	combatLogs = []
 	regEx = '|'.join(map(re.escape, ['] [', '] (', ') <']))
-	file = open('combatTest.txt','r')
+	path = '/cygdrive/c/Users/Scott/Documents/Star Wars - The Old Republic/CombatLogs'
+	fileName = sorted(os.listdir(path), reverse = True)[0]
+	file = open(path+ '/' + fileName, 'r')
 	print('Parsing...')
 	inCombat = False
 	waiting = -1
 	toonName = re.split(regEx, file.readline())[1][1:]
+	#toonName = 'Esmelar'
 	print('Skipping...')
 	encounterNumber = 0
-	
+
 	for line in follow(file):
 		lineList = re.split(regEx, line)
-			
+
 		# Check if in combat
 	# Action ----------------------------------------------------------
 		actionList = lineList[4].split(': ')
@@ -165,7 +172,7 @@ def parsing(fileName):
 		tempAction = ': '.join(actionList[1:]).split(' {')
 		action = gameObject(tempAction[0], tempAction[1])
 	# -----------------------------------------------------------------
-	
+
 		actionClean = clean(action.name)
 
 		if actionClean == 'EnterCombat':
@@ -175,7 +182,6 @@ def parsing(fileName):
 				encounterNumber += 1
 				startTime = datetime.datetime.strptime(lineList[0][1:], '%H:%M:%S.%f')
 				fight = encounter(startTime,encounterNumber,toonName)
-				print(fight)
 			else:
 				waiting = -1
 
@@ -187,7 +193,7 @@ def parsing(fileName):
 			timeStr = lineList[0][1:]
 			timeObj = datetime.datetime.strptime(timeStr, '%H:%M:%S.%f')
 	# -----------------------------------------------------------------
-			
+
 	# Source / Target ------------------------------------------------
 			try:
 				sourceVec = lineList[1].split(':')
@@ -208,7 +214,7 @@ def parsing(fileName):
 					target = gameObject(clean(lineList[2]))
 
 	# -----------------------------------------------------------------
-				
+
 	# Ability ---------------------------------------------------------
 			if lineList[3] == '': # gameObject class
 				ability = gameObject('none')
@@ -216,13 +222,13 @@ def parsing(fileName):
 				temp = lineList[3].split(' {')
 				ability = gameObject(temp[0], temp[1])
 	# -----------------------------------------------------------------
-				
+
 	# Damage / Threat -------------------------------------------------
 			if lineList[5] == ')\r\n' or lineList[5] == '' or lineList[5] == ')\n':
 				actionDetails = damage()
 			else:
 				tempDetails = clean(lineList[5])
-			
+
 				try:
 					tempDetailsList = tempDetails.split(' ')
 					mag = tempDetailsList[0]
@@ -239,16 +245,17 @@ def parsing(fileName):
 						crit = True
 						mag = mag[:-1]
 					actionDetails = damage(int(mag), crit = crit)
-				
+
 			try:
 				threat = int(clean(lineList[6]))
 			except IndexError:
 				threat = 'none'
 	# -----------------------------------------------------------------
-		
+
 	# Add to encounter ------------------------------------------------
 			try:
-				fight.update(timeObj, source, target, ability, actionType, action, actionDetails, threat)
+				if waiting < 0:
+					fight.update(timeObj, source, target, ability, actionType, action, actionDetails, threat)
 			except:
 				print(lineList)
 				break
@@ -256,11 +263,11 @@ def parsing(fileName):
 
 		if actionClean == 'ExitCombat':
 			waiting = 10
+			fight.close(timeObj)
 
 		waiting -= 1
 		if waiting == 0:
 			inCombat = False
-			fight.close(timeObj)
 			combatLogs.append(fight)
 			print('Skipping...')
 
@@ -371,6 +378,6 @@ def printDamage(targetIDs):
 		for names,numbers in sorted(targetIDs[ID][1].items(), key = lambda pair: pair[1][0], reverse = True):
 			print('\t {}: {}'.format(names, numbers[0]))
 
-combatLog = parsing('combatTest.txt')
+combatLog = parsing()
 #printLogs(combatLog)
 #dpsOutput(combatLog, 'emixan')

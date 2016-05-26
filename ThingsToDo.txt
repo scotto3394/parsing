@@ -3,8 +3,18 @@ Parsing / Encounters branch:
 
 1) Work on plotting the DPS/DTPS/TPS/HPS numbers and have "real-time" plotting. That is, being able to continuously plot as the text file is being updated.  Some combination of plt.show, plt.draw, and plt.pause should do the trick. Look into caching the background if this is too slow.
 
-2) Build in the target list, with ability breakdown. Thus for each target note, what abilities used by/on them with what effect. 
+2) Build in the target list, with ability breakdown. Thus for each target note, what abilities used by/on them with what effect.
 
 3) Start building dictionary of special IDs for certain boss/special add encounters.
 
 4) Test against actual updating combat log on my PC. Figure out key for identifying when new combat logs open up and automatically switch to them.
+
+
+
+Bug Fixes:
+
+1) parsing errors for things out of index while real time. Check the cause, could be reading faster than it's writing.
+
+2) need to find some way to make it interactive or save the info some how. Can parse in real-time, but can see limited information and can't seem to access it afterwards. related, find some way to exit the program without losing the parsed info.
+
+3) when first opening file, doesn't see anything. Need to find a way to read toon name only when first line is printed. 
