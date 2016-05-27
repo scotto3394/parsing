@@ -7,8 +7,6 @@ Parsing / Encounters branch:
 
 3) Start building dictionary of special IDs for certain boss/special add encounters.
 
-4) Test against actual updating combat log on my PC. Figure out key for identifying when new combat logs open up and automatically switch to them.
-
 
 
 Bug Fixes:

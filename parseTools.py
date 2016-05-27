@@ -23,6 +23,9 @@ class gameObject(object):
 	def __init__(self, name, ID = 'none'):
 		self.name = name
 		self.ID = ID
+		
+	def __str__(self):
+		return self.name
 
 class damage(object):
 
@@ -103,7 +106,7 @@ class encounter(object):
 			# Or something was done to you
 				if source.ID != 'none':
 				# You took damage
-					if type(actionDetails) == type(1):
+					if type(actionDetails.magnitude) == type(1):
 						self.taken.append(actionDetails.magnitude)
 						self.DTPS = sum(self.taken)/(delta * 1.)
 				else:
@@ -129,7 +132,10 @@ def clean(string):
 		if string[-1] == ')':
 			string = string[:-1]
 		if string[-1] == '\n':
-			string = string[:-2]
+			if string[-2] == '\r':
+				string = string[:-3]
+			else:
+				string = string[:-2]
 			# changes between 2 & 3 it seems. depending on ')\r\n' and ')\n'
 		if string[-1] == '>':
 			string = string[:-1]
@@ -142,17 +148,18 @@ def follow(thefile):
 	while True:
 		line = thefile.readline()
 		if not line:
-			time.sleep(0.1)
-			continue
-			#raise StopIteration
+			#time.sleep(0.1)
+			#continue
+			raise StopIteration
 		yield line
 
 def parsing():
 	combatLogs = []
 	regEx = '|'.join(map(re.escape, ['] [', '] (', ') <']))
-	path = '/cygdrive/c/Users/Scott/Documents/Star Wars - The Old Republic/CombatLogs'
-	fileName = sorted(os.listdir(path), reverse = True)[0]
-	file = open(path+ '/' + fileName, 'r')
+	#path = '/cygdrive/c/Users/Scott/Documents/Star Wars - The Old Republic/CombatLogs'
+	#fileName = sorted(os.listdir(path), reverse = True)[0]
+	#file = open(path+ '/' + fileName, 'r')
+	file = open('combatTest.txt','r')
 	print('Parsing...')
 	inCombat = False
 	waiting = -1
