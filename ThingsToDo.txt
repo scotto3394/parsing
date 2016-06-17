@@ -15,4 +15,6 @@ Bug Fixes:
 
 2) need to find some way to make it interactive or save the info some how. Can parse in real-time, but can see limited information and can't seem to access it afterwards. related, find some way to exit the program without losing the parsed info.
 
-3) when first opening file, doesn't see anything. Need to find a way to read toon name only when first line is printed. 
+3) when first opening file, doesn't see anything. Need to find a way to read toon name only when first line is printed.
+
+3) print rotation, needs some string formatting for the output

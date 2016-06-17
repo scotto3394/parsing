@@ -23,7 +23,7 @@ class gameObject(object):
 	def __init__(self, name, ID = 'none'):
 		self.name = name
 		self.ID = ID
-		
+
 	def __str__(self):
 		return self.name
 
@@ -127,18 +127,20 @@ def takeInput(string):
 
 def clean(string):
 	try:
-		if string[0] == '@':
-			string = string[1:]
-		if string[-1] == ')':
-			string = string[:-1]
-		if string[-1] == '\n':
-			if string[-2] == '\r':
-				string = string[:-3]
-			else:
-				string = string[:-2]
-			# changes between 2 & 3 it seems. depending on ')\r\n' and ')\n'
-		if string[-1] == '>':
-			string = string[:-1]
+		# Find ways to consolidate this
+		string = string.lstrip('@').rstrip('\r\n>)')
+		# if string[0] == '@':
+		# 	string = string[1:]
+		# if string[-1] == ')':
+		# 	string = string[:-1]
+		# if string[-1] == '\n':
+		# 	if string[-2] == '\r':
+		# 		string = string[:-3]
+		# 	else:
+		# 		string = string[:-2]
+		# 	# changes between 2 & 3 it seems. depending on ')\r\n' and ')\n'
+		# if string[-1] == '>':
+		# 	string = string[:-1]
 		return string.split(' {')[0]
 	except IndexError:
 		return
@@ -159,12 +161,11 @@ def parsing():
 	#path = '/cygdrive/c/Users/Scott/Documents/Star Wars - The Old Republic/CombatLogs'
 	#fileName = sorted(os.listdir(path), reverse = True)[0]
 	#file = open(path+ '/' + fileName, 'r')
-	file = open('combatTest.txt','r')
+	file = open('combatTest.txt','r',encoding='latin1')
 	print('Parsing...')
 	inCombat = False
 	waiting = -1
 	toonName = re.split(regEx, file.readline())[1][1:]
-	#toonName = 'Esmelar'
 	print('Skipping...')
 	encounterNumber = 0
 
@@ -194,7 +195,6 @@ def parsing():
 
 		if inCombat:
 	# Pull out and clean each entry in the list
-
 
 	# Time -----------------------------------------------------------
 			timeStr = lineList[0][1:]
@@ -385,6 +385,6 @@ def printDamage(targetIDs):
 		for names,numbers in sorted(targetIDs[ID][1].items(), key = lambda pair: pair[1][0], reverse = True):
 			print('\t {}: {}'.format(names, numbers[0]))
 
-combatLog = parsing()
-#printLogs(combatLog)
-#dpsOutput(combatLog, 'emixan')
+if __name__ == '__main__':
+	combatLog = parsing()
+	combatLog[0].printRotation()
