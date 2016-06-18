@@ -18,3 +18,5 @@ Bug Fixes:
 3) when first opening file, doesn't see anything. Need to find a way to read toon name only when first line is printed.
 
 3) print rotation, needs some string formatting for the output
+
+4) inserting into the Database needs document/ID checking to prevent repeats

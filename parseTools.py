@@ -38,6 +38,7 @@ class encounter(object):
 
 	def __init__(self, startTime, number, toonName):
 		self.startT = startTime
+		self.endT = None
 		self.ID = number
 		self.player = toonName
 		self.DPS = 0
@@ -155,13 +156,13 @@ def follow(thefile):
 			raise StopIteration
 		yield line
 
-def parsing():
+def parsing(pathName):
 	combatLogs = []
 	regEx = '|'.join(map(re.escape, ['] [', '] (', ') <']))
 	#path = '/cygdrive/c/Users/Scott/Documents/Star Wars - The Old Republic/CombatLogs'
 	#fileName = sorted(os.listdir(path), reverse = True)[0]
 	#file = open(path+ '/' + fileName, 'r')
-	file = open('combatTest.txt','r',encoding='latin1')
+	file = open(pathName,'r',encoding='latin1')
 	print('Parsing...')
 	inCombat = False
 	waiting = -1
@@ -386,5 +387,6 @@ def printDamage(targetIDs):
 			print('\t {}: {}'.format(names, numbers[0]))
 
 if __name__ == '__main__':
-	combatLog = parsing()
-	combatLog[0].printRotation()
+	combatLog = parsing('combatTest.txt')
+	document = {key: combatLog[0].__dict__[key] for key in combatLog[0].__dict__.keys() if key != "rotation" and key != "duration"}
+	print(document.keys())
