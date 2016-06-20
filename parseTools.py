@@ -128,20 +128,7 @@ def takeInput(string):
 
 def clean(string):
 	try:
-		# Find ways to consolidate this
 		string = string.lstrip('@').rstrip('\r\n>)')
-		# if string[0] == '@':
-		# 	string = string[1:]
-		# if string[-1] == ')':
-		# 	string = string[:-1]
-		# if string[-1] == '\n':
-		# 	if string[-2] == '\r':
-		# 		string = string[:-3]
-		# 	else:
-		# 		string = string[:-2]
-		# 	# changes between 2 & 3 it seems. depending on ')\r\n' and ')\n'
-		# if string[-1] == '>':
-		# 	string = string[:-1]
 		return string.split(' {')[0]
 	except IndexError:
 		return
@@ -166,7 +153,8 @@ def parsing(pathName):
 	print('Parsing...')
 	inCombat = False
 	waiting = -1
-	toonName = re.split(regEx, file.readline())[1][1:]
+	# toonName = re.split(regEx, file.readline())[1][1:]
+	toonName = 'Emixan'
 	print('Skipping...')
 	encounterNumber = 0
 
@@ -270,13 +258,19 @@ def parsing(pathName):
 	# -----------------------------------------------------------------
 
 		if actionClean == 'ExitCombat':
-			waiting = 10
-			fight.close(timeObj)
+			try:
+				waiting = 10
+				fight.close(timeObj)
+			except:
+				pass
 
 		waiting -= 1
 		if waiting == 0:
 			inCombat = False
-			combatLogs.append(fight)
+			try:
+				combatLogs.append(fight)
+			except:
+				pass
 			print('Skipping...')
 
 	print('Uploaded!')
