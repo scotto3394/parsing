@@ -83,33 +83,33 @@ class encounter(object):
 		self.duration = deltaDiff
 
 		if ability.name != 'none' and source.name == self.player:
-			self.rotation.append((delta, ability.name))
+			self.rotation.append((time, ability.name))
 
 		# If there is threat, something interesting happened.
 		if threat != 'none':
-			self.threat.append(threat)
-			self.TPS = sum(self.threat)/(delta * 1.)
+			self.threat.append((time,threat))
+			self.TPS = sum(map(lambda x: x[1], self.threat))/(delta * 1.)
 
 			if source.name == self.player:
 			# Either you did something
 				if target.ID != 'none':
 				# You did damage
 					if type(actionDetails.magnitude) == type(1):
-						self.damage.append(actionDetails.magnitude)
-						self.DPS = sum(self.damage)/(delta * 1.)
+						self.damage.append((time,actionDetails.magnitude))
+						self.DPS = sum(map(lambda x: x[1], self.damage))/(delta * 1.)
 				else:
 				# You healed
 					if type(actionDetails.magnitude) == type(1):
-						self.healing.append(actionDetails.magnitude)
-						self.HPS = sum(self.healing)/(delta * 1.)
+						self.healing.append((time, actionDetails.magnitude))
+						self.HPS = sum(map(lambda x: x[1], self.healing))/(delta * 1.)
 
 			else:
 			# Or something was done to you
 				if source.ID != 'none':
 				# You took damage
 					if type(actionDetails.magnitude) == type(1):
-						self.taken.append(actionDetails.magnitude)
-						self.DTPS = sum(self.taken)/(delta * 1.)
+						self.taken.append((time, actionDetails.magnitude))
+						self.DTPS = sum(map(lambda x: x[1], self.taken))/(delta * 1.)
 				else:
 				# You were healed
 					pass
@@ -150,12 +150,15 @@ def parsing(pathName):
 	#fileName = sorted(os.listdir(path), reverse = True)[0]
 	#file = open(path+ '/' + fileName, 'r')
 	file = open(pathName,'r',encoding='latin1')
-	print('Parsing...')
+	# print('Parsing...')
 	inCombat = False
 	waiting = -1
-	# toonName = re.split(regEx, file.readline())[1][1:]
-	toonName = 'Emixan'
-	print('Skipping...')
+	# This is indicative of an empty file
+	try:
+		toonName = re.split(regEx, file.readline())[1][1:]
+	except:
+		return
+	# print('Skipping...')
 	encounterNumber = 0
 
 	for line in follow(file):
@@ -175,7 +178,7 @@ def parsing(pathName):
 		if actionClean == 'EnterCombat':
 			if waiting <= 0:
 				inCombat = True
-				print("Writing...")
+				# print("Writing...")
 				encounterNumber += 1
 				startTime = datetime.datetime.strptime(lineList[0][1:], '%H:%M:%S.%f')
 				fight = encounter(startTime,encounterNumber,toonName)
@@ -271,9 +274,9 @@ def parsing(pathName):
 				combatLogs.append(fight)
 			except:
 				pass
-			print('Skipping...')
+			# print('Skipping...')
 
-	print('Uploaded!')
+	# print('Uploaded!')
 	return combatLogs
 
 def dpsOutput(combatLogs, playerName):

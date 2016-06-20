@@ -19,4 +19,4 @@ Bug Fixes:
 
 3) print rotation, needs some string formatting for the output
 
-4) inserting into the Database needs document/ID checking to prevent repeats
+4) Find a way to use Time Deltas in the Database (JSON conversions) instead of the time stamp.
