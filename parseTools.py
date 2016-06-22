@@ -45,11 +45,6 @@ class encounter(object):
 		self.DTPS = 0
 		self.HPS = 0
 		self.TPS = 0
-		self.taken = []
-		self.threat = []
-		self.damage = []
-		self.healing = []
-		self.rotation = []
 		self.targets = {}
 		self.duration = 0
 		self.hits = 0
@@ -133,255 +128,134 @@ def clean(string):
 	except IndexError:
 		return
 
-def follow(thefile):
-	#thefile.seek(0,2)
-	while True:
-		line = thefile.readline()
-		if not line:
-			#time.sleep(0.1)
-			#continue
-			raise StopIteration
-		yield line
-
 def parsing(pathName):
 	combatLogs = []
 	regEx = '|'.join(map(re.escape, ['] [', '] (', ') <']))
-	#path = '/cygdrive/c/Users/Scott/Documents/Star Wars - The Old Republic/CombatLogs'
-	#fileName = sorted(os.listdir(path), reverse = True)[0]
-	#file = open(path+ '/' + fileName, 'r')
-	file = open(pathName,'r',encoding='latin1')
-	# print('Parsing...')
-	inCombat = False
-	waiting = -1
-	# This is indicative of an empty file
-	try:
-		toonName = re.split(regEx, file.readline())[1][1:]
-	except:
-		return
-	# print('Skipping...')
-	encounterNumber = 0
+	with open(pathName,'r',encoding='latin1') as file:
+		inCombat = False
+		waiting = -1
 
-	for line in follow(file):
-		lineList = re.split(regEx, line)
+		# This is indicative of an empty file
+		try:
+			toonName = re.split(regEx, file.readline())[1][1:]
+		except:
+			return
+		encounterNumber = 0
 
-		# Check if in combat
-	# Action ----------------------------------------------------------
-		actionList = lineList[4].split(': ')
-		tempType = actionList[0].split(' {')
-		actionType = gameObject(tempType[0], tempType[1])
-		tempAction = ': '.join(actionList[1:]).split(' {')
-		action = gameObject(tempAction[0], tempAction[1])
-	# -----------------------------------------------------------------
+		for line in file:
+			lineList = re.split(regEx, line)
 
-		actionClean = clean(action.name)
+			# Check if in combat
+		# Action ----------------------------------------------------------
+			actionList = lineList[4].split(': ')
+			tempType = actionList[0].split(' {')
+			actionType = gameObject(tempType[0], tempType[1])
+			tempAction = ': '.join(actionList[1:]).split(' {')
+			action = gameObject(tempAction[0], tempAction[1])
+		# -----------------------------------------------------------------
 
-		if actionClean == 'EnterCombat':
-			if waiting <= 0:
-				inCombat = True
-				# print("Writing...")
-				encounterNumber += 1
-				startTime = datetime.datetime.strptime(lineList[0][1:], '%H:%M:%S.%f')
-				fight = encounter(startTime,encounterNumber,toonName)
-			else:
-				waiting = -1
+			actionClean = clean(action.name)
 
-		if inCombat:
-	# Pull out and clean each entry in the list
-
-	# Time -----------------------------------------------------------
-			timeStr = lineList[0][1:]
-			timeObj = datetime.datetime.strptime(timeStr, '%H:%M:%S.%f')
-	# -----------------------------------------------------------------
-
-	# Source / Target ------------------------------------------------
-			try:
-				sourceVec = lineList[1].split(':')
-				source = gameObject(clean(sourceVec[0]), int(sourceVec[1]))
-			except:
-				if lineList[1] == '':
-					source = gameObject('none')
+			if actionClean == 'EnterCombat':
+				if waiting <= 0:
+					inCombat = True
+					encounterNumber += 1
+					startTime = datetime.datetime.strptime(lineList[0][1:], '%H:%M:%S.%f')
+					fight = encounter(startTime,encounterNumber,toonName)
 				else:
-					source = gameObject(clean(lineList[1]))
+					waiting = -1
 
-			try:
-				targetVec = lineList[2].split(':')
-				target = gameObject(clean(targetVec[0]), int(targetVec[1]))
-			except:
-				if lineList[2] == '':
-					target = gameObject('none')
-				else:
-					target = gameObject(clean(lineList[2]))
+			if inCombat:
+		# Pull out and clean each entry in the list
 
-	# -----------------------------------------------------------------
+		# Time -----------------------------------------------------------
+				timeStr = lineList[0][1:]
+				timeObj = datetime.datetime.strptime(timeStr, '%H:%M:%S.%f')
+		# -----------------------------------------------------------------
 
-	# Ability ---------------------------------------------------------
-			if lineList[3] == '': # gameObject class
-				ability = gameObject('none')
-			else:
-				temp = lineList[3].split(' {')
-				ability = gameObject(temp[0], temp[1])
-	# -----------------------------------------------------------------
-
-	# Damage / Threat -------------------------------------------------
-			if lineList[5] == ')\r\n' or lineList[5] == '' or lineList[5] == ')\n':
-				actionDetails = damage()
-			else:
-				tempDetails = clean(lineList[5])
+		# Source / Target ------------------------------------------------
+				try:
+					sourceVec = lineList[1].split(':')
+					source = gameObject(clean(sourceVec[0]), int(sourceVec[1]))
+				except:
+					if lineList[1] == '':
+						source = gameObject('none')
+					else:
+						source = gameObject(clean(lineList[1]))
 
 				try:
-					tempDetailsList = tempDetails.split(' ')
-					mag = tempDetailsList[0]
-					dType = tempDetailsList[1]
-					crit = False
-					if '*' in mag:
-						crit = True
-						mag = mag[:-1]
-					actionDetails = damage(int(mag), dType, crit)
+					targetVec = lineList[2].split(':')
+					target = gameObject(clean(targetVec[0]), int(targetVec[1]))
 				except:
-					mag = tempDetails
-					crit = False
-					if '*' in mag:
-						crit = True
-						mag = mag[:-1]
-					actionDetails = damage(int(mag), crit = crit)
+					if lineList[2] == '':
+						target = gameObject('none')
+					else:
+						target = gameObject(clean(lineList[2]))
 
-			try:
-				threat = int(clean(lineList[6]))
-			except IndexError:
-				threat = 'none'
-	# -----------------------------------------------------------------
+		# -----------------------------------------------------------------
 
-	# Add to encounter ------------------------------------------------
-			try:
-				if waiting < 0:
-					fight.update(timeObj, source, target, ability, actionType, action, actionDetails, threat)
-			except:
-				print(lineList)
-				break
-	# -----------------------------------------------------------------
+		# Ability ---------------------------------------------------------
+				if lineList[3] == '': # gameObject class
+					ability = gameObject('none')
+				else:
+					temp = lineList[3].split(' {')
+					ability = gameObject(temp[0], temp[1])
+		# -----------------------------------------------------------------
 
-		if actionClean == 'ExitCombat':
-			try:
-				waiting = 10
-				fight.close(timeObj)
-			except:
-				pass
+		# Damage / Threat -------------------------------------------------
+				if lineList[5] == ')\r\n' or lineList[5] == '' or lineList[5] == ')\n':
+					actionDetails = damage()
+				else:
+					tempDetails = clean(lineList[5])
 
-		waiting -= 1
-		if waiting == 0:
-			inCombat = False
-			try:
-				combatLogs.append(fight)
-			except:
-				pass
-			# print('Skipping...')
+					try:
+						tempDetailsList = tempDetails.split(' ')
+						mag = tempDetailsList[0]
+						dType = tempDetailsList[1]
+						crit = False
+						if '*' in mag:
+							crit = True
+							mag = mag[:-1]
+						actionDetails = damage(int(mag), dType, crit)
+					except:
+						mag = tempDetails
+						crit = False
+						if '*' in mag:
+							crit = True
+							mag = mag[:-1]
+						actionDetails = damage(int(mag), crit = crit)
 
-	# print('Uploaded!')
+				try:
+					threat = int(clean(lineList[6]))
+				except IndexError:
+					threat = 'none'
+		# -----------------------------------------------------------------
+
+		# Add to encounter ------------------------------------------------
+				try:
+					if waiting < 0:
+						fight.update(timeObj, source, target, ability, actionType, action, actionDetails, threat)
+				except:
+					print(lineList)
+					break
+		# -----------------------------------------------------------------
+
+			if actionClean == 'ExitCombat':
+				try:
+					waiting = 10
+					fight.close(timeObj)
+				except:
+					pass
+
+			waiting -= 1
+			if waiting == 0:
+				inCombat = False
+				try:
+					combatLogs.append(fight)
+				except:
+					pass
+
 	return combatLogs
-
-def dpsOutput(combatLogs, playerName):
-	waiting = -1
-	for line in combatLogs:
-		if line.action.name == 'EnterCombat':
-			if waiting <= 0:
-				startTime = line.time
-				cumDamage = 0
-				hits = 0
-				crits = 0
-
-				damageList = []
-				DPS = []
-				timeList = []
-				targetNames = []
-				targetIDs = {}
-				threat = []
-			else:
-				waiting = -1
-
-		try:
-			currentTime = line.time
-			deltaDiff = currentTime - startTime
-			delta = deltaDiff.seconds + deltaDiff.microseconds / 1000000.
-
-			if delta < 1:
-				continue
-
-			# damage stats
-			if line.action.name.lower() == 'damage' and line.source.name.lower() == playerName.lower():
-				[hits, crits, cumDamage] = dpsCalc(line, hits, crits, cumDamage, damageList, DPS, timeList, targetIDs, targetNames, delta,threat)
-
-		except:
-			pass
-
-		if line.action.name == 'ExitCombat':
-			waiting = 10
-
-		waiting -= 1
-		if waiting == 0:
-			# plotting subroutine
-			p = plt.figure(1)
-			p.suptitle(', '.join(targetNames))
-			plt.subplot(2,1,1)
-			plt.plot(timeList, DPS, 'b-') #DPS plot
-			plt.title('DPS')
-			plt.subplot(2,1,2)
-			plt.plot(timeList,damageList,'r-') #Damage plot
-			plt.title('Damage')
-
-			#plt.show(block = False)
-			plt.show()
-			print('Number of Hits: {:,}'.format(hits))
-			print('Crit Percentage: {:.2f}%'.format((100.*crits)/(hits)))
-			print('Total Damage Done: {:,}'.format(cumDamage))
-
-			print('\n')
-			damageBreakdown = takeInput('Would you like a damage breakdown? (y/n): ')
-			if damageBreakdown == 'y':
-				printDamage(targetIDs)
-			else:
-				pass
-
-			print('\n')
-			continuePrompt = takeInput('Would you like to print next combat log? (y/n): ')
-			plt.close()
-			if continuePrompt == 'y':
-				continue
-			else:
-				break
-
-def dpsCalc(damageInfo, hits, crits, cumDamage, damageList, DPS, timeList, targetIDs, targetNames, delta, threat):
-	# DPS stats
-	details = damageInfo.actionDetails
-	cumDamage += details.magnitude
-	hits += 1
-	if details.crit:
-		crits += 1
-	damageList.append(details.magnitude)
-	DPS.append(cumDamage / delta)
-	timeList.append(delta)
-
-	# target identification (+ ability breakdown)
-	tar = damageInfo.target
-	if tar.ID != 'none':
-		if tar.ID in targetIDs.keys():
-			if damageInfo.ability.name in targetIDs[tar.ID][1].keys():
-				targetIDs[tar.ID][1][damageInfo.ability.name][0] += details.magnitude
-				targetIDs[tar.ID][1][damageInfo.ability.name][1] += 1
-			else:
-				targetIDs[tar.ID][1][damageInfo.ability.name] = [details.magnitude,0]
-		else:
-			targetIDs[tar.ID] = [tar.name,{damageInfo.ability.name: [details.magnitude,0]}]
-			targetNames.append(tar.name)
-			print(tar.name)
-
-	return hits, crits, cumDamage
-
-def printDamage(targetIDs):
-	for ID in targetIDs.keys():
-		print('{}: '.format(targetIDs[ID][0]))
-
-		for names,numbers in sorted(targetIDs[ID][1].items(), key = lambda pair: pair[1][0], reverse = True):
-			print('\t {}: {}'.format(names, numbers[0]))
 
 if __name__ == '__main__':
 	combatLog = parsing('combatTest.txt')

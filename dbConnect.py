@@ -3,14 +3,22 @@ import os
 import parseTools as pt
 from pymongo import MongoClient
 
-# The current plan ?schema? is to have a main collection of the encounters, with base encounter summaries (DPS, Start/End time, Targets, Number of Hits, Number of Crits, etc.). More detailed information, such as arrays of damage, threat, rotation, etc. will be kept in separate tables with time stamp + encounter IDs to help tag them if necessary.
+# The current plan ?schema? is to have a main collection of the encounters, with base encounter summaries (DPS, Start/End time, Targets, Number of Hits, Number of Crits, Class/Subclass Identifier etc.). More detailed information, such as actions in the encounter will be kept in a separate table. E.g.
+# {TimeStamp} {Ability Name} {Action Magnitude e.g. Healing: ####, Damage: ####} {Crit: Bool} {Encounter ID}
 
+# There will also be a Dictionary file to identify abilities with their effects and class identifiers.
 client = MongoClient()
 # db = client.SWTORLogs
 db = client.learn
 
-def insertLog(pathName, collectionName):
+def getDatabase(database):
+    client = MongoClient()
+    db = client[database]
 
+    return db
+
+def insertLog(pathName, collectionName):
+    db = getDatabase("learn")
     collection = db[collectionName]
     fileLog = db.fileLog
 
@@ -45,7 +53,8 @@ def insertLog(pathName, collectionName):
         except:
             raise
 
-
+def insertAbility(document):
+    pass
 if __name__ == '__main__':
 # insertLog('combatTest.txt','Test')
 # print(db.Test.count())
