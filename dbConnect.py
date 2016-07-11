@@ -7,9 +7,7 @@ from pymongo import MongoClient
 # {TimeStamp} {Ability Name} {Action Magnitude e.g. Healing: ####, Damage: ####} {Crit: Bool} {Encounter ID}
 
 # There will also be a Dictionary file to identify abilities with their effects and class identifiers.
-client = MongoClient()
 # db = client.SWTORLogs
-db = client.learn
 
 def getDatabase(database):
     client = MongoClient()
@@ -17,7 +15,7 @@ def getDatabase(database):
 
     return db
 
-def insertLog(pathName, collectionName):
+def insertLog(pathName, collectionName, online = False, onlineData = None):
     db = getDatabase("learn")
     collection = db[collectionName]
     fileLog = db.fileLog
@@ -30,9 +28,12 @@ def insertLog(pathName, collectionName):
         fileLog.insert_one({"filePath": pathName})
 
     #parse the documment
-    encounters = pt.parsing(pathName)
-    if encounters == None:
-        return
+    if online:
+        encounters = pt.parsingWeb(onlineData)
+    else:
+        encounters = pt.parsingLocal(pathName)
+        if encounters == None:
+            return
 
     #Loop through the encounters inserting them into collections
     for encounter in encounters:

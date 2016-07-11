@@ -87,7 +87,7 @@ class encounter(object):
 
 			if source.name == self.player:
 			# Either you did something
-				if target.ID != 'none':
+				if target.ID != 'player':
 				# You did damage
 					if type(actionDetails.magnitude) == type(1):
 						self.damage.append((time,actionDetails.magnitude))
@@ -100,7 +100,7 @@ class encounter(object):
 
 			else:
 			# Or something was done to you
-				if source.ID != 'none':
+				if source.ID != 'player':
 				# You took damage
 					if type(actionDetails.magnitude) == type(1):
 						self.taken.append((time, actionDetails.magnitude))
@@ -128,7 +128,7 @@ def clean(string):
 	except IndexError:
 		return
 
-def parsing(pathName):
+def parsingLocal(pathName):
 	combatLogs = []
 	regEx = '|'.join(map(re.escape, ['] [', '] (', ') <']))
 	with open(pathName,'r',encoding='latin1') as file:
@@ -181,7 +181,7 @@ def parsing(pathName):
 					if lineList[1] == '':
 						source = gameObject('none')
 					else:
-						source = gameObject(clean(lineList[1]))
+						source = gameObject(clean(lineList[1]), 'player')
 
 				try:
 					targetVec = lineList[2].split(':')
@@ -190,7 +190,7 @@ def parsing(pathName):
 					if lineList[2] == '':
 						target = gameObject('none')
 					else:
-						target = gameObject(clean(lineList[2]))
+						target = gameObject(clean(lineList[2]), 'player')
 
 		# -----------------------------------------------------------------
 
@@ -257,7 +257,38 @@ def parsing(pathName):
 
 	return combatLogs
 
+def parsingWeb(data):
+	combatLogs = []
+
+	# Manage time
+	time = data[0]
+	timeObj = datetime.datetime.strptime(timeStr, '%H:%M:%S.%f')
+
+	# Manage source/target
+	if data[1][0] == '@':
+		source = gameObject(data[1].lstrip('@'), 'player')
+	else:
+		source = gameObject(data[1])
+	if data[2][0] == '@':
+		target = gameObject(data[2].lstrip('@'), 'player')
+	else:
+		target = gameObject(data[2])
+
+	# Manage ability used
+	if data[3] == '':
+		ability = gameObject('none')
+	else:
+		ability = gameObject(data[3])
+
+	# Manage effects/actions
+
+		# Including magnitudes/crits/threat/etc.
+
+	fight.update(timeObj, source, target, ability, actionType, action, actionDetails, threat)
+	return combatLogs
+
+
 if __name__ == '__main__':
-	combatLog = parsing('combatTest.txt')
+	combatLog = parsingLocal('combatTest.txt')
 	document = {key: combatLog[0].__dict__[key] for key in combatLog[0].__dict__.keys() if key != "rotation" and key != "duration"}
 	print(document.keys())

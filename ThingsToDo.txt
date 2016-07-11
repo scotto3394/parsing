@@ -20,3 +20,5 @@ Bug Fixes:
 3) print rotation, needs some string formatting for the output
 
 4) Find a way to use Time Deltas in the Database (JSON conversions) instead of the time stamp.
+
+5) Replace 'none' strings with None objects

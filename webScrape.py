@@ -32,7 +32,7 @@ def getPlayerLinks(leaderboard):
     playerPages = [parseBaseURL + "/" + tr.a["href"] for tr in leaderTable]
     return playerPages
 
-# This portion still doesn't work
+
 def scrapeLogData(playerPage):
     driver = webdriver.Chrome()
     driver.get(playerPage)
@@ -46,8 +46,9 @@ def scrapeLogData(playerPage):
     soup = BeautifulSoup(html,'lxml')
     logView = soup.find("div",id= "log")
     tableData = logView.find("tbody").find_all("tr")
-    for row in tableData:
-        print(row)
+    clean = lambda x: str(x.get_text()).strip().split('\n')
+    cleanedData = map(clean,tableData)
+    return cleanedData
 
 #=============================================================================
 # Ability Database (TOR Community)
