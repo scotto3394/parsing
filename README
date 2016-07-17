@@ -1,0 +1,21 @@
+SWTOR Parsing Kit
+Version: N/A
+Author: Scott Manifold (scotto3394)
+
+
+Language: Python 2.7 (with some Python 3.5 support that needs to be tested further)
+
+Summary:
+This is a personal toolkit built for me to analyze SWTOR combat log data, for both learning and curiosity sake. The long term goal is to use Machine Learning techniques to determine optimal gameplay, based on the acquired data. 
+
+
+Files:
+- parseTools.py: Basic module for parsing Combat Log data and grabbing useful statistics.
+- webScrape.py: Basic module for scraping Combat Log data and ability database data for SWTOR.
+- dbConnect.py: Basic module for inserting data into local database. Current functionality limited.
+
+
+
+For questions, comments, concerns, bugs, or any other form of communication, contact via the following:
+1) Address Line: Github Parsing: <Topic here>
+2) Email: shm.qed@gmail.com
